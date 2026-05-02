@@ -187,7 +187,7 @@ class SelectionWatcher {
     func checkSelection() {
         guard !translating else { return }
 
-        // Save current clipboard content
+        // Save current clipboard to restore after copying the selection
         let pb = NSPasteboard.general
         let savedContent = pb.string(forType: .string)
         let savedCount = pb.changeCount
@@ -202,6 +202,11 @@ class SelectionWatcher {
               !rawText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         else {
             return
+        }
+
+        pb.clearContents()
+        if let savedContent {
+            pb.setString(savedContent, forType: .string)
         }
 
         // Clean up Apple Books citations
