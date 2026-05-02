@@ -5,6 +5,5 @@
 # Scratch files
 scratch/
 
-# Compiled binaries (can be rebuilt from source)
-bin/
-TranslatePopup.app/Contents/MacOS/TranslatePopup
+# Binaries are tracked so `git clone` yields a runnable .app (Apple Silicon arm64).
+# Rebuild from source if needed: see README.
