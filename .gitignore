@@ -1,0 +1,10 @@
+# macOS
+.DS_Store
+*.swp
+
+# Scratch files
+scratch/
+
+# Compiled binaries (can be rebuilt from source)
+tools/bin/
+TranslatePopup.app/Contents/MacOS/TranslatePopup
