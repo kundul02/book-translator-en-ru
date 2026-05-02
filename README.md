@@ -1,4 +1,4 @@
-# Antigravity Translator
+# Book-Translator ENG-RUS
 
 A powerful set of tools for instant translation on macOS.
 
