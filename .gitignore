@@ -6,5 +6,5 @@
 scratch/
 
 # Compiled binaries (can be rebuilt from source)
-tools/bin/
+bin/
 TranslatePopup.app/Contents/MacOS/TranslatePopup
