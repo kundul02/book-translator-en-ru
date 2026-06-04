@@ -1,24 +1,35 @@
 # Book-Translator ENG-RUS
 
-A powerful set of tools for instant translation on macOS.
+macOS tools for **instant English → Russian translation** while reading (Apple Books, browsers, PDFs). Select text in any app; a floating popup shows the translation without leaving the page.
+
+## Why this project
+
+Reading English books on macOS often means constant context switching (Dictionary, browser tabs, copy-paste loops). Book-Translator automates that workflow with a lightweight Swift utility and a menu-bar-style popup—no API keys, no account setup.
 
 ## Features
-- **TranslatePopup**: A macOS application for quick text translation.
-- **Clipboard Translator**: A Swift-based utility to translate content directly from your clipboard.
-- **Automation Scripts**: The `scripts/` folder is reserved for ZSH helpers (add your own).
 
-## Project Structure
-- `src/`: Source code for the translation utilities.
-- `scripts/`: Optional automation scripts (not shipped in the repo by default).
-- `bin/`: Prebuilt CLI binary (`translate-clipboard`) for quick use after clone.
-- `TranslatePopup.app`: Ready-to-run macOS app bundle. Binaries in the repo are **Apple Silicon (arm64)**; on Intel Macs, rebuild from `src/translate-clipboard.swift`.
+- **TranslatePopup.app** — floating HUD window; watches text selection and translates automatically
+- **translate-clipboard** — CLI helper (`bin/translate-clipboard`) for clipboard-based translation
+- **Apple Books aware** — strips "Excerpt From …" / «Отрывок из книги …» citation boilerplate
+- **No API key** — uses the public Google Translate `gtx` client endpoint (see Privacy)
 
-## Installation
-After cloning, you can run the bundled builds as-is (arm64):
+## Requirements
 
-- Double-click **`TranslatePopup.app`** or run `./bin/translate-clipboard` from the repo root.
+- macOS 12+ (tested on Apple Silicon; Intel: rebuild from source)
+- **Accessibility** permission (simulate ⌘C for selection capture)
+- **Input Monitoring** (global mouse-up events in other apps)
 
-To recompile from source (any Mac):
+Grant in **System Settings → Privacy & Security → Accessibility / Input Monitoring**, then add `TranslatePopup.app`.
+
+## Quick start
+
+```bash
+git clone https://github.com/kundul02/Book-Translator-ENG-RUS.git
+cd Book-Translator-ENG-RUS
+open TranslatePopup.app
+```
+
+Prebuilt binaries in the repo are **arm64**. On Intel Macs, rebuild:
 
 ```bash
 mkdir -p bin TranslatePopup.app/Contents/MacOS
@@ -26,14 +37,34 @@ swiftc src/translate-clipboard.swift -o bin/translate-clipboard
 swiftc src/translate-clipboard.swift -o TranslatePopup.app/Contents/MacOS/TranslatePopup
 ```
 
-## Usage
-### Clipboard Translation
+CLI only:
+
 ```bash
 ./bin/translate-clipboard
 ```
 
-### Automation
-Check the `scripts/` directory for utility scripts.
+Press **Esc** to hide the popup.
 
----
-Developed by Artem Sirchenko.
+## Project structure
+
+| Path | Description |
+|------|-------------|
+| `src/translate-clipboard.swift` | Single-file Swift source (app + CLI) |
+| `TranslatePopup.app/` | Ready-to-run macOS app bundle (arm64) |
+| `bin/translate-clipboard` | Prebuilt CLI binary (arm64) |
+
+## Privacy
+
+Selected text is sent to `translate.googleapis.com` for translation (same unofficial endpoint many browser extensions use). No analytics or third-party SDKs in this repo.
+
+## Contributing
+
+Issues and PRs welcome. Please do not commit API keys or personal paths.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+## Author
+
+Artem Sirchenko ([@kundul02](https://github.com/kundul02))
