@@ -49,7 +49,15 @@ CLI only:
 ./bin/translate-clipboard
 ```
 
-Press **Esc** to hide the popup; launching the app again brings it back. **+** / **−** change the font size.
+To launch it like any other app (Spotlight, Launchpad, Dock), install it once:
+
+```bash
+ditto TranslatePopup.app /Applications/TranslatePopup.app
+```
+
+The app shows in the Dock while running (right-click → Options → Keep in Dock to pin it).
+
+Press **Esc** to hide the popup; clicking the Dock icon or launching the app again brings it back. **+** / **−** change the font size.
 
 ## Project structure
 
@@ -58,7 +66,8 @@ Press **Esc** to hide the popup; launching the app again brings it back. **+** /
 | `src/translate-clipboard.swift` | Single-file Swift source (app + CLI) |
 | `TranslatePopup.app/` | Ready-to-run macOS app bundle (arm64) |
 | `bin/translate-clipboard` | Prebuilt CLI binary (arm64) |
-| `build.sh` | Builds and signs both binaries |
+| `build.sh` | Builds and signs both binaries; refreshes `/Applications/TranslatePopup.app` if installed |
+| `tools/make-icon.swift` | Renders the app icon (`swift tools/make-icon.swift`) |
 
 ## Privacy
 

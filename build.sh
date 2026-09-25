@@ -26,3 +26,9 @@ codesign --force --sign "$SIGN" --identifier "$BUNDLE_ID" "$APP"
 codesign --force --sign "$SIGN" --identifier "$BUNDLE_ID.cli" bin/translate-clipboard
 codesign --verify --strict "$APP"
 echo "Built and signed with: $SIGN"
+
+# Keep the installed copy in sync (the same signature keeps its Accessibility permission)
+if [[ -d /Applications/$APP ]]; then
+    ditto "$APP" "/Applications/$APP"
+    echo "Updated /Applications/$APP"
+fi

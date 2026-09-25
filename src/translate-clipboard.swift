@@ -551,7 +551,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let popup: PopupController
     init(popup: PopupController) { self.popup = popup }
 
-    // Launching the app again while it runs (it has no Dock icon) brings back a hidden panel
+    // Clicking the Dock icon or launching the app again brings back a hidden panel
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         popup.show()
         return false
@@ -571,15 +571,28 @@ func terminateOtherInstances() {
     }
 }
 
+// Minimal menu bar so the app has a name and Cmd+Q while it is active
+func makeMainMenu() -> NSMenu {
+    let main = NSMenu()
+    let appItem = NSMenuItem()
+    main.addItem(appItem)
+    let appMenu = NSMenu()
+    appMenu.addItem(withTitle: "Выйти из TranslatePopup", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+    appItem.submenu = appMenu
+    return main
+}
+
 // MARK: - Main
 
 let app = NSApplication.shared
-app.setActivationPolicy(.accessory)
+// Regular app: visible in the Dock and Cmd+Tab; clicking the Dock icon brings back a hidden panel
+app.setActivationPolicy(.regular)
 terminateOtherInstances()
 
 let popup = PopupController()
 let appDelegate = AppDelegate(popup: popup)
 app.delegate = appDelegate
+app.mainMenu = makeMainMenu()
 
 // Posting Cmd+C to other apps requires Accessibility permission
 let axOptions = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
