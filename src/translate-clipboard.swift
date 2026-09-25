@@ -1,4 +1,5 @@
 import AppKit
+import AVFoundation
 import Foundation
 
 // MARK: - Google Translate API
@@ -204,9 +205,43 @@ final class BooksMenuObserver {
 
 // MARK: - Popup Window
 
+// Prefer an enhanced/premium English voice of any accent (downloadable in System Settings),
+// US English on ties. At equal quality keep the system default: the list also contains
+// novelty voices like "Bad News" or "Bubbles".
+func bestEnglishVoice() -> AVSpeechSynthesisVoice? {
+    let fallback = AVSpeechSynthesisVoice(language: "en-US")
+    let rank = { (v: AVSpeechSynthesisVoice) in v.quality.rawValue * 2 + (v.language == "en-US" ? 1 : 0) }
+    let best = AVSpeechSynthesisVoice.speechVoices()
+        .filter { $0.language.hasPrefix("en") }
+        .max { rank($0) < rank($1) }
+    if let best, best.quality.rawValue > (fallback?.quality.rawValue ?? 0) {
+        return best
+    }
+    return fallback
+}
+
+// Speech callbacks may arrive off the main thread; forward them to the UI there
+final class SpeechDelegate: NSObject, AVSpeechSynthesizerDelegate {
+    let onStop: () -> Void
+    init(onStop: @escaping () -> Void) { self.onStop = onStop }
+
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        DispatchQueue.main.async(execute: onStop)
+    }
+
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        DispatchQueue.main.async(execute: onStop)
+    }
+}
+
 class PopupController: NSObject, NSWindowDelegate {
     let panel: NSPanel
     let textView: NSTextView
+    let speakButton: NSButton
+    let synth = AVSpeechSynthesizer()
+    var speechDelegate: SpeechDelegate?
+    // Original English text of the current translation, read aloud by the speak button
+    var sourceText = ""
 
     override init() {
         let font = NSFont.systemFont(ofSize: 15, weight: .regular)
@@ -265,15 +300,40 @@ class PopupController: NSObject, NSWindowDelegate {
         btnMinus.autoresizingMask = [.minXMargin, .maxYMargin]
         btnMinus.action = #selector(decreaseFont)
 
+        speakButton = NSButton(frame: NSRect(x: bounds.width - pad - 90, y: 5, width: 30, height: 25))
+        speakButton.title = "🔊"
+        speakButton.bezelStyle = .inline
+        speakButton.autoresizingMask = [.minXMargin, .maxYMargin]
+        speakButton.action = #selector(toggleSpeech)
+        speakButton.toolTip = "Прочитать английский оригинал"
+        speakButton.isEnabled = false
+
         panel.contentView!.addSubview(scroll)
         panel.contentView!.addSubview(btnPlus)
         panel.contentView!.addSubview(btnMinus)
+        panel.contentView!.addSubview(speakButton)
 
         super.init()
         
         btnPlus.target = self
         btnMinus.target = self
+        speakButton.target = self
+        let delegate = SpeechDelegate { [weak self] in self?.speakButton.title = "🔊" }
+        speechDelegate = delegate
+        synth.delegate = delegate
         panel.delegate = self
+    }
+
+    @objc func toggleSpeech() {
+        if synth.isSpeaking {
+            synth.stopSpeaking(at: .immediate)
+            return
+        }
+        guard !sourceText.isEmpty else { return }
+        let utterance = AVSpeechUtterance(string: sourceText)
+        utterance.voice = bestEnglishVoice()
+        synth.speak(utterance)
+        speakButton.title = "⏹"
     }
 
     @objc func increaseFont() {
@@ -291,7 +351,13 @@ class PopupController: NSObject, NSWindowDelegate {
         update(translated: textView.string)
     }
 
-    func update(translated: String) {
+    // `source` is the original text for the speak button; nil keeps the current one (e.g. font resize)
+    func update(translated: String, source: String? = nil) {
+        if let source {
+            if synth.isSpeaking { synth.stopSpeaking(at: .immediate) }
+            sourceText = source
+            speakButton.isEnabled = !source.isEmpty
+        }
         textView.string = translated
 
         let font = textView.font ?? NSFont.systemFont(ofSize: 15)
@@ -431,7 +497,7 @@ class SelectionWatcher {
                 guard let self, id == self.requestID else { return }
                 switch result {
                 case .success(let translated):
-                    self.popup.update(translated: translated)
+                    self.popup.update(translated: translated, source: text)
                 case .failure(let error):
                     // Allow retrying the same selection
                     self.lastText = ""
@@ -440,7 +506,7 @@ class SelectionWatcher {
                     case .network(let msg): reason = msg
                     case .badResponse: reason = "неожиданный ответ сервера"
                     }
-                    self.popup.update(translated: "Ошибка перевода: \(reason)")
+                    self.popup.update(translated: "Ошибка перевода: \(reason)", source: text)
                 }
             }
         }

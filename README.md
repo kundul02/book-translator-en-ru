@@ -13,6 +13,7 @@ Reading English books on macOS often means constant context switching (Dictionar
 - **Apple Books aware** — strips "Excerpt From …" / «Отрывок из книги …» citation boilerplate and auto-closes the Books highlight menu after a selection (hold **⌥ Option** while selecting to keep it)
 - **Clipboard-safe** — your clipboard is restored after the selection is copied (all content types)
 - **Smart triggering** — only drags, double/triple clicks and shift-clicks count as selections
+- **Read aloud** — 🔊 button speaks the original English text; uses the best installed English voice (download Premium/Enhanced voices in System Settings → Accessibility → Spoken Content → System Voice → Manage Voices)
 - **No API key** — uses the public Google Translate `gtx` client endpoint (see Privacy)
 
 ## Requirements
